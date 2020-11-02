@@ -77,7 +77,8 @@ export default class WorldSearch {
 		});
 
 		// manual testing
-		this.search('mankindforward');
+		// this.search('mankindforward');
+		this.search('whimwhams');
 	}
 
 
@@ -120,7 +121,7 @@ export default class WorldSearch {
           for (const worldId of Object.keys(this.worldDatabase)) {
               const worldRecord = this.worldDatabase[worldId];
 
-              this.spawn('Teleporter to ' + worldRecord.name, 'teleporter:space/' + worldId + '?label=true',
+              this.spawn('Teleporter to ' + worldRecord.name, worldId,
                   { x: x, y: 0.0, z: 0.0}, { x: 0.0, y: 180, z: 0.0}, this.teleporterScale)
               x += this.teleporterSpacing;
           }
@@ -132,9 +133,10 @@ export default class WorldSearch {
 	    });
 	}
 
-  private spawn(name: string, resourceId: string, position: any, rotation: any, scale: any){
-    this.libraryActors.push(MRE.Actor.CreateFromLibrary(this.context, {
-        resourceId: resourceId,
+  private spawn(name: string, worldId: string, position: any, rotation: any, scale: any){
+  	// spawn teleporter
+  	let tp = MRE.Actor.CreateFromLibrary(this.context, {
+        resourceId: 'teleporter:space/' + worldId + '?label=true',
         actor: {
             name: name,
             transform: {
@@ -148,6 +150,51 @@ export default class WorldSearch {
                 }
             }
         }
-    }));
+    });
+    this.libraryActors.push(tp);
+
+    // spawn info button
+		const noTextButton = MRE.Actor.Create(this.context, {
+			actor: {
+				name: 'noTextButton',
+				parentId: tp.id,
+				transform: {
+					local: {
+						position: { x: 0, y: 2, z: 0 },
+						rotation: MRE.Quaternion.FromEulerAngles(
+		          rotation.x * MRE.DegreesToRadians,
+		          rotation.y * MRE.DegreesToRadians,
+		          rotation.z * MRE.DegreesToRadians)
+					}
+				},
+				collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
+				text: {
+					contents: "More Info",
+					height: 0.1,
+					anchor: MRE.TextAnchorLocation.MiddleCenter,
+					justify: MRE.TextJustify.Center
+				}
+			}
+		});
+		noTextButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
+			let world = this.worldDatabase[worldId];
+
+			let info = `${world.name}\n\nBy ${world.userDisplayName} (${world.userUsername})`;
+
+			if(typeof world.description !='undefined' && world.description){
+   			info += `\n\n${world.description}`;
+			}
+
+			info += `\n\nFavorited ${world.favorited} | Visited ${world.visited}`;
+
+			user.prompt(info)
+			.then(res => {
+				// noTextButton.text.contents =
+				// 	`Click for message\nLast response: ${res.submitted ? "<ok>" : "<cancelled>"}`;
+			})
+			.catch(err => {
+				console.error(err);
+			});
+		});
   }
 }
