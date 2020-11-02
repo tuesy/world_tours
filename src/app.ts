@@ -5,6 +5,8 @@
 
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 
+const fetch = require('node-fetch');
+
 /**
  * The main class of this app. All the logic goes here.
  */
@@ -42,11 +44,29 @@ export default class HelloWorld {
 			.then(res => {
 				textButton.text.contents =
 					`Search\nLast: ${res.submitted ? res.text : "<cancelled>"}`;
+
+					this.search(res.text);
 			})
 			.catch(err => {
 				console.error(err);
 			});
 		});
+
+		// manual testing
+		this.search('mankindforward');
+	}
+
+
+	// search for worlds and spawn teleporters
+	private search(query: string) {
+		// TODO: remove existing teleporters
+
+		// query public worlds search api
+    fetch('https://account.altvr.com/api/public/spaces/search?q=' + query)
+	    .then((res: any) => res.json())
+	    .then((json: any) => {
+	    	console.log(json);
+	    });
 	}
 
 }
