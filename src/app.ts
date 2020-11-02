@@ -6,6 +6,8 @@
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 
 const fetch = require('node-fetch');
+const url = require('url')
+const SEARCH_URL = 'https://account.altvr.com/api/public/spaces/search?'
 
 /**
  * The structure of a world entry in the world database.
@@ -33,7 +35,9 @@ export default class WorldSearch {
   // tslint:disable-next-line:no-var-requires variable-name
   private worldDatabase: { [key: string]: WorldDescriptor } = {};
 
-  private teleporterSpacing = 2;
+  private teleporterSpacing = 0.8;
+  private teleporterScale = {x: 0.5, y: 0.5, z: 0.5};
+  private maxResults = 25;
 
 	constructor(private context: MRE.Context) {
 		this.context.onStarted(() => this.started());
@@ -63,7 +67,7 @@ export default class WorldSearch {
 			user.prompt("Search public Worlds by name, description, or tag...", true)
 			.then(res => {
 				textButton.text.contents =
-					`Search\nLast: ${res.submitted ? res.text : "<cancelled>"}`;
+					`Search\n\n${res.submitted ? "Results for \"" + res.text + "\"" : "<cancelled>"}`;
 
 					this.search(res.text);
 			})
@@ -80,9 +84,18 @@ export default class WorldSearch {
 	// search for worlds and spawn teleporters
 	private search(query: string) {
 		// TODO: remove existing teleporters
+    // testings
+
+    // clear existing teleporters
+		for (const actor of this.libraryActors) {
+			actor.destroy();
+		}
+
+		// clear world data
+		this.worldDatabase = {};
 
 		// query public worlds search api
-		let uri = 'https://account.altvr.com/api/public/spaces/search?q=' + query;
+		let uri = SEARCH_URL + new url.URLSearchParams({ q: query, per: this.maxResults });
     fetch(uri)
 	    .then((res: any) => res.json())
 	    .then((json: any) => {
@@ -108,9 +121,10 @@ export default class WorldSearch {
               const worldRecord = this.worldDatabase[worldId];
 
               this.spawn('Teleporter to ' + worldRecord.name, 'teleporter:space/' + worldId + '?label=true',
-                  { x: x, y: 0.0, z: 0.0}, { x: 0.0, y: 180, z: 0.0}, {x: 1, y: 1, z: 1})
+                  { x: x, y: 0.0, z: 0.0}, { x: 0.0, y: 180, z: 0.0}, this.teleporterScale)
               x += this.teleporterSpacing;
-          }        }
+          }
+        }
         else if (json.status == '404'){
           // 404 is a normal HTTP response so you can't 'catch' it
           console.log("ERROR: received a 404 for " + uri)
