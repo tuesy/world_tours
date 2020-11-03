@@ -38,6 +38,13 @@ export default class WorldSearch {
   private teleporterSpacing = 0.8;
   private teleporterScale = {x: 0.5, y: 0.5, z: 0.5};
   private maxResults = 25;
+  private previewImageWidth = 1.4;
+  private previewImageHeight = 1;
+  private previewImageDepth = 0.02;
+  private previewImagePosition = {y: 2};
+  private moreInfoHeight = 0.2;
+  private moreInfoPosition = {y: 2.8}
+
 
 	constructor(private context: MRE.Context) {
 		this.context.onStarted(() => this.started());
@@ -140,6 +147,8 @@ export default class WorldSearch {
 	}
 
   private spawn(name: string, worldId: string, position: any, rotation: any, scale: any){
+    let world = this.worldDatabase[worldId];
+
   	// spawn teleporter
   	let tp = MRE.Actor.CreateFromLibrary(this.context, {
         resourceId: 'teleporter:space/' + worldId + '?label=true',
@@ -166,7 +175,7 @@ export default class WorldSearch {
 				parentId: tp.id,
 				transform: {
 					local: {
-						position: { x: 0, y: 2, z: 0 },
+						position: this.moreInfoPosition,
 						rotation: MRE.Quaternion.FromEulerAngles(
 		          rotation.x * MRE.DegreesToRadians,
 		          rotation.y * MRE.DegreesToRadians,
@@ -176,15 +185,13 @@ export default class WorldSearch {
 				collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
 				text: {
 					contents: "More Info",
-					height: 0.1,
+					height: this.moreInfoHeight,
 					anchor: MRE.TextAnchorLocation.MiddleCenter,
 					justify: MRE.TextJustify.Center
 				}
 			}
 		});
 		noTextButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
-			let world = this.worldDatabase[worldId];
-
 			let info = `${world.name}\n\nBy ${world.userDisplayName} (${world.userUsername})`;
 
 			if(typeof world.description !='undefined' && world.description){
@@ -202,5 +209,29 @@ export default class WorldSearch {
 				console.error(err);
 			});
 		});
+
+    // spawn preview image
+    const tex = this.assets.createTexture('previewTexture', {uri: world.image});
+    const mat = this.assets.createMaterial('previewMaterial', {
+      color: MRE.Color3.Black(),
+      emissiveColor: MRE.Color3.White(),
+      emissiveTextureId: tex.id
+    });
+    const mesh = this.assets.createBoxMesh('window', this.previewImageWidth, this.previewImageHeight, this.previewImageDepth);
+    MRE.Actor.Create(this.context, {
+      actor: {
+        name: 'window',
+        parentId: tp.id,
+        appearance: {
+          meshId: mesh.id,
+          materialId: mat.id
+        },
+        transform: {
+          local: {
+            position: this.previewImagePosition
+          }
+        }
+      }
+    });
   }
 }
