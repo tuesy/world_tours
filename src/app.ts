@@ -43,11 +43,12 @@ export default class WorldSearch {
   private previewImageDepth = 0.02;
   private previewImagePosition = {y: 2};
   private moreInfoHeight = 0.2;
-  private moreInfoPosition = {y: 2.8}
+  private moreInfoPosition = {y: 2.8};
+  private initialQuery: any;
 
-
-	constructor(private context: MRE.Context) {
+	constructor(private context: MRE.Context, private params: MRE.ParameterSet) {
 		this.context.onStarted(() => this.started());
+    this.context.onUserJoined(user => this.userJoined(user));
 	}
 
 	/**
@@ -89,10 +90,23 @@ export default class WorldSearch {
 			});
 		});
 
-		// manual testing
-		// this.search('mankindforward');
-		this.search('whimwhams');
+    // allow the user to preset a query
+    if(this.params.q){
+      this.initialQuery = this.params.q;
+      this.search(this.initialQuery);
+    }
 	}
+
+  //
+  // only done once because that's when the world information is first available
+  private userJoined(user: MRE.User) {
+    if(this.initialQuery){
+      return;
+    }
+    else{
+      console.log(user.properties);
+    }
+  }
 
 
 	// search for worlds and spawn teleporters
