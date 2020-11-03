@@ -66,10 +66,16 @@ export default class WorldSearch {
 		textButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
 			user.prompt("Search public Worlds by name, description, or tag...", true)
 			.then(res => {
-				textButton.text.contents =
-					`Search\n\n${res.submitted ? "Results for \"" + res.text + "\"" : "<cancelled>"}`;
 
-					this.search(res.text);
+          if(res.submitted){
+            textButton.text.contents =
+              `Search\n\nResults for \"${res.text}\"`;
+            this.search(res.text);
+          }
+          else{
+            // user clicked 'Cancel'
+          }
+
 			})
 			.catch(err => {
 				console.error(err);
