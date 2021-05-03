@@ -1,18 +1,11 @@
-/*!
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
-
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 
 const fetch = require('node-fetch');
 const url = require('url')
-const SEARCH_URL = 'https://account.altvr.com/api/public/spaces/search?'
-const WELCOME_TEXT = 'World Search App';
+const WELCOME_TEXT = 'World Building Tours App';
 const INFO_TEXT_HEIGHT = 1.2;
 const BUTTON_HEIGHT = 0.6;
 const TELEPORTER_BASE = -0.5;
-const SAMPLE_QUERY = 'whimwhams'; // Nera's stuff
 
 /**
  * The structure of a world entry in the world database.
@@ -31,7 +24,7 @@ type WorldDescriptor = {
 /**
  * The main class of this app. All the logic goes here.
  */
-export default class WorldSearch {
+export default class WorldTours {
 	private assets: MRE.AssetContainer;
 
   private libraryActors: MRE.Actor[] = [];
@@ -62,43 +55,6 @@ export default class WorldSearch {
 		this.assets = new MRE.AssetContainer(this.context);
 
     this.createInterface();
-
-		// const textButton = MRE.Actor.Create(this.context, {
-		// 	actor: {
-		// 		name: 'searchButton',
-		// 		transform: { local: { position: { x: 0, y: 1, z: -1 } } },
-		// 		collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
-		// 		text: {
-		// 			contents: "Search",
-		// 			height: 0.1,
-		// 			anchor: MRE.TextAnchorLocation.MiddleCenter,
-		// 			justify: MRE.TextJustify.Center
-		// 		}
-		// 	}
-		// });
-		// textButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
-		// 	user.prompt("Search public Worlds by name, description, or tag...", true)
-		// 	.then(res => {
-
-  //         if(res.submitted){
-  //           textButton.text.contents =
-  //             `Search\n\nResults for \"${res.text}\"`;
-  //           this.search(res.text);
-  //         }
-  //         else{
-  //           // user clicked 'Cancel'
-  //         }
-
-		// 	})
-		// 	.catch(err => {
-		// 		console.error(err);
-		// 	});
-		// });
-
-    // allow the user to preset a query
-    if(this.params.q){
-      this.search(String(this.params.q));
-    }
 	}
 
   private createInterface(){
@@ -120,19 +76,18 @@ export default class WorldSearch {
       resourceId: 'artifact:1579238405710021245',
       actor: {
         name: 'Help Button',
-        transform: { local: { position: { x: 0.2, y: BUTTON_HEIGHT, z: -1 } } },
+        transform: { local: { position: { x: 0, y: BUTTON_HEIGHT, z: -1 } } },
         collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } }
       }
      });
     helpButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
       user.prompt(`
-This app allows you to search for public Worlds by name, description, tag, username, etc.
+This the official app for Altspace World Building Tours.
 
-Click "OK" for an example.
+https://account.altvr.com/channels/worldbuilding
 `).then(res => {
           if(res.submitted){
-            infoText.text.contents = this.resultMessageFor(SAMPLE_QUERY);
-            this.search(SAMPLE_QUERY);
+            // infoText.text.contents = this.resultMessageFor(SAMPLE_QUERY);
           }
           else
             infoText.text.contents = WELCOME_TEXT;
@@ -141,90 +96,7 @@ Click "OK" for an example.
         console.error(err);
       });
     });
-
-    const hashtagButton = MRE.Actor.CreateFromLibrary(this.context, {
-      resourceId: 'artifact:1579239194507608147',
-      actor: {
-        name: 'Search Button',
-        transform: { local: { position: { x: -0.2, y: BUTTON_HEIGHT, z: -1 } } },
-        collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } }
-      }
-    });
-    hashtagButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
-      user.prompt(`
-Enter a search term and click "OK"
-(e.g. 'tidal' or 'babayaga').`, true)
-      .then(res => {
-
-          if(res.submitted && res.text.length > 0){
-            infoText.text.contents = this.resultMessageFor(res.text);
-            this.search(res.text);
-          }
-          else{
-            // user clicked 'Cancel'
-          }
-
-      })
-      .catch(err => {
-        console.error(err);
-      });
-    });
   }
-
-  private resultMessageFor(query: string){
-    return `Search results for "${query}"`;
-  }
-
-	// search for worlds and spawn teleporters
-	private search(query: string) {
-		// TODO: remove existing teleporters
-    // testings
-
-    // clear existing teleporters
-		for (const actor of this.libraryActors) {
-			actor.destroy();
-		}
-
-		// clear world data
-		this.worldDatabase = {};
-
-		// query public worlds search api
-		let uri = SEARCH_URL + new url.URLSearchParams({ q: query, per: this.maxResults });
-    fetch(uri)
-	    .then((res: any) => res.json())
-	    .then((json: any) => {
-	    	// console.log(json);
-        if(json.spaces){
-          for(const world of json['spaces']){
-              this.worldDatabase[world.space_id] = {
-                  'description': String(world.description),
-                  'favorited': Number(world.favorited),
-                  'image': String(world.image_large),
-                  'name': String(world.name),
-                  'userDisplayName': String(world.first_name),
-                  'userUsername': String(world.username),
-                  'visited': Number(world.visited),
-                  'worldId': String(world.space_id)
-              }
-          }
-
-          // where all the magic happens
-          // Loop over the world database, creating a teleporter for each entry.
-          let x = this.teleporterSpacing;
-          for (const worldId of Object.keys(this.worldDatabase)) {
-              const worldRecord = this.worldDatabase[worldId];
-
-              this.spawn('Teleporter to ' + worldRecord.name, worldId,
-                  { x: x, y: 0.0, z: 0.0}, { x: 0.0, y: 180, z: 0.0}, this.teleporterScale)
-              x += this.teleporterSpacing;
-          }
-        }
-        else if (json.status == '404'){
-          // 404 is a normal HTTP response so you can't 'catch' it
-          console.log("ERROR: received a 404 for " + uri)
-        }
-	    });
-	}
 
   private spawn(name: string, worldId: string, position: any, rotation: any, scale: any){
     let world = this.worldDatabase[worldId];

@@ -1,10 +1,10 @@
 {
-  "name": "world-search",
+  "name": "world-tours",
   "version": "0.1.0",
   "private": true,
   "description": "",
   "main": "built/server.js",
-  "author": "Microsoft Corporation",
+  "author": "Jimmy Zhang",
   "license": "MIT",
   "keywords": [
     "mixed reality",
