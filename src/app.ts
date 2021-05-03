@@ -2,7 +2,7 @@ import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 
 const fetch = require('node-fetch');
 const url = require('url')
-const WELCOME_TEXT = 'World Building Tours App';
+const WELCOME_TEXT = "Daisy Shaw's World Tours";
 const INFO_TEXT_HEIGHT = 1.2;
 const BUTTON_HEIGHT = 0.6;
 const TELEPORTER_BASE = -0.5;
@@ -82,9 +82,7 @@ export default class WorldTours {
      });
     helpButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
       user.prompt(`
-This the official app for World Building Tours.
-
-https://account.altvr.com/channels/worldbuilding
+This the official app for Daisy Shaw's World Tours.
 `).then(res => {
           if(res.submitted){
             // infoText.text.contents = this.resultMessageFor(SAMPLE_QUERY);

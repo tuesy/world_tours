@@ -1,4 +1,4 @@
-# World Tours App
+# Daisy Shaw's World Tours App
 
 # Usage
 
