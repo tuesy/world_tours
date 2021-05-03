@@ -82,7 +82,7 @@ export default class WorldTours {
      });
     helpButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
       user.prompt(`
-This the official app for Altspace World Building Tours.
+This the official app for World Building Tours.
 
 https://account.altvr.com/channels/worldbuilding
 `).then(res => {
