@@ -3,9 +3,10 @@ import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 const fetch = require('node-fetch');
 const url = require('url')
 const WELCOME_TEXT = "Daisy Shaw's World Tours";
-const INFO_TEXT_HEIGHT = 1.2;
+const INFO_TEXT_HEIGHT = 0.9;
 const BUTTON_HEIGHT = 0.6;
 const TELEPORTER_BASE = -0.5;
+const PROMO_IMAGE_URL = 'https://cdn-content-ingress.altvr.com/uploads/event/image/1648190977224999859/output-onlinejpgtools.jpg'
 
 /**
  * The structure of a world entry in the world database.
@@ -61,7 +62,7 @@ export default class WorldTours {
     const infoText = MRE.Actor.Create(this.context, {
       actor: {
         name: 'Info Text',
-        transform: { local: { position: { x: 0, y: INFO_TEXT_HEIGHT, z: -1 } } },
+        transform: { local: { position: { x: 0, y: INFO_TEXT_HEIGHT, z: 0 } } },
         collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
         text: {
           contents: WELCOME_TEXT,
@@ -76,7 +77,7 @@ export default class WorldTours {
       resourceId: 'artifact:1579238405710021245',
       actor: {
         name: 'Help Button',
-        transform: { local: { position: { x: 0, y: BUTTON_HEIGHT, z: -1 } } },
+        transform: { local: { position: { x: 0, y: BUTTON_HEIGHT, z: 0 } } },
         collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } }
       }
      });
@@ -93,6 +94,34 @@ This the official app for Daisy Shaw's World Tours.
       .catch(err => {
         console.error(err);
       });
+    });
+
+    this.spawnImage(PROMO_IMAGE_URL, 1.78, 1, 0.02, {y: 1.5, z: 0.1});
+  }
+
+  private spawnImage(uri: string, width: any, height: any, depth: any, position: any){
+    // promo image
+    // spawn preview image
+    const tex = this.assets.createTexture('previewTexture', {uri: uri});
+    const mat = this.assets.createMaterial('previewMaterial', {
+      color: MRE.Color3.Black(),
+      emissiveColor: MRE.Color3.White(),
+      emissiveTextureId: tex.id
+    });
+    const mesh = this.assets.createBoxMesh('window', width, height, depth);
+    MRE.Actor.Create(this.context, {
+      actor: {
+        name: 'window',
+        appearance: {
+          meshId: mesh.id,
+          materialId: mat.id
+        },
+        transform: {
+          local: {
+            position: position
+          }
+        }
+      }
     });
   }
 
