@@ -10,7 +10,7 @@ There's a demo Altspace world here: https://account.altvr.com/worlds/10465724601
 
 This app is featured so you can place it in your Worlds using the World Editor:
 
-![Image of World Editor](https://cdn-content-ingress.altvr.com/uploads/photo/image/1728674263445013123/Jimmy2021-05-02_17-18-07.png)
+![World Editor Screenshot](https://github.com/tuesy/world_search/blob/main/world_editor_screenshot.png?raw=true)
 
 You can also place it manually using:
 
