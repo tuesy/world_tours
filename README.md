@@ -8,7 +8,7 @@ There's a demo Altspace world here: https://account.altvr.com/worlds/10465724601
 
 # Usage
 
-This app is featured so you can place it in your Worlds using the World Editor:
+This app is featured so you can place it in your Worlds using the World Editor (Featured > SDK Apps > Page 2):
 
 ![World Editor Screenshot](https://github.com/tuesy/world_search/blob/main/world_editor_screenshot.png?raw=true)
 
