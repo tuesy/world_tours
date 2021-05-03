@@ -8,6 +8,11 @@ import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 const fetch = require('node-fetch');
 const url = require('url')
 const SEARCH_URL = 'https://account.altvr.com/api/public/spaces/search?'
+const WELCOME_TEXT = 'World Search App';
+const INFO_TEXT_HEIGHT = 1.2;
+const BUTTON_HEIGHT = 0.6;
+const TELEPORTER_BASE = -0.5;
+const SAMPLE_QUERY = 'whimwhams'; // Nera's stuff
 
 /**
  * The structure of a world entry in the world database.
@@ -56,43 +61,119 @@ export default class WorldSearch {
 		// set up somewhere to store loaded assets (meshes, textures, animations, gltfs, etc.)
 		this.assets = new MRE.AssetContainer(this.context);
 
-		const textButton = MRE.Actor.Create(this.context, {
-			actor: {
-				name: 'searchButton',
-				transform: { local: { position: { x: 0, y: 1, z: -1 } } },
-				collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
-				text: {
-					contents: "Search",
-					height: 0.1,
-					anchor: MRE.TextAnchorLocation.MiddleCenter,
-					justify: MRE.TextJustify.Center
-				}
-			}
-		});
-		textButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
-			user.prompt("Search public Worlds by name, description, or tag...", true)
-			.then(res => {
+    this.createInterface();
 
-          if(res.submitted){
-            textButton.text.contents =
-              `Search\n\nResults for \"${res.text}\"`;
-            this.search(res.text);
-          }
-          else{
-            // user clicked 'Cancel'
-          }
+		// const textButton = MRE.Actor.Create(this.context, {
+		// 	actor: {
+		// 		name: 'searchButton',
+		// 		transform: { local: { position: { x: 0, y: 1, z: -1 } } },
+		// 		collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
+		// 		text: {
+		// 			contents: "Search",
+		// 			height: 0.1,
+		// 			anchor: MRE.TextAnchorLocation.MiddleCenter,
+		// 			justify: MRE.TextJustify.Center
+		// 		}
+		// 	}
+		// });
+		// textButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
+		// 	user.prompt("Search public Worlds by name, description, or tag...", true)
+		// 	.then(res => {
 
-			})
-			.catch(err => {
-				console.error(err);
-			});
-		});
+  //         if(res.submitted){
+  //           textButton.text.contents =
+  //             `Search\n\nResults for \"${res.text}\"`;
+  //           this.search(res.text);
+  //         }
+  //         else{
+  //           // user clicked 'Cancel'
+  //         }
+
+		// 	})
+		// 	.catch(err => {
+		// 		console.error(err);
+		// 	});
+		// });
 
     // allow the user to preset a query
     if(this.params.q){
       this.search(String(this.params.q));
     }
 	}
+
+  private createInterface(){
+    const infoText = MRE.Actor.Create(this.context, {
+      actor: {
+        name: 'Info Text',
+        transform: { local: { position: { x: 0, y: INFO_TEXT_HEIGHT, z: -1 } } },
+        collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } },
+        text: {
+          contents: WELCOME_TEXT,
+          height: 0.1,
+          anchor: MRE.TextAnchorLocation.MiddleCenter,
+          justify: MRE.TextJustify.Center
+        }
+      }
+    });
+
+    const helpButton = MRE.Actor.CreateFromLibrary(this.context, {
+      resourceId: 'artifact:1579238405710021245',
+      actor: {
+        name: 'Help Button',
+        transform: { local: { position: { x: 0.2, y: BUTTON_HEIGHT, z: -1 } } },
+        collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } }
+      }
+     });
+    helpButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
+      user.prompt(`
+This app allows you to search for public Worlds by name, description, tag, username, etc.
+
+Click "OK" for an example.
+`).then(res => {
+          if(res.submitted){
+            infoText.text.contents = this.resultMessageFor(SAMPLE_QUERY);
+            this.search(SAMPLE_QUERY);
+          }
+          else
+            infoText.text.contents = WELCOME_TEXT;
+      })
+      .catch(err => {
+        console.error(err);
+      });
+    });
+
+    const hashtagButton = MRE.Actor.CreateFromLibrary(this.context, {
+      resourceId: 'artifact:1579239194507608147',
+      actor: {
+        name: 'Search Button',
+        transform: { local: { position: { x: -0.2, y: BUTTON_HEIGHT, z: -1 } } },
+        collider: { geometry: { shape: MRE.ColliderType.Box, size: { x: 0.5, y: 0.2, z: 0.01 } } }
+      }
+    });
+    hashtagButton.setBehavior(MRE.ButtonBehavior).onClick(user => {
+      user.prompt(`
+Enter a search term and click "OK"
+(e.g. 'tidal' or 'babayaga').`, true)
+      .then(res => {
+
+          if(res.submitted && res.text.length > 0){
+            infoText.text.contents = this.resultMessageFor(res.text);
+            this.search(res.text);
+          }
+          else{
+            // user clicked 'Cancel'
+          }
+
+      })
+      .catch(err => {
+        console.error(err);
+      });
+    });
+  }
+
+  private resultMessageFor(query: string){
+    return `Search results for "${query}"`;
+  }
 
 	// search for worlds and spawn teleporters
 	private search(query: string) {
