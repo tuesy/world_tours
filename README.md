@@ -1,6 +1,6 @@
 # World Search App
 
-![Image of World Search Demo World](https://cdn-content-ingress.altvr.com/uploads/space_template/banner_image/1288724542314774905/rooftopGames2_noBanner.jpg)
+![World Search Promo](https://github.com/tuesy/world_search/blob/main/promo.png?raw=true)
 
 World Search is an MRE app that allows Altspace users to search public Worlds. You can search for words in the name or description. You can even search for a particular user's worlds using their username. Fuzzy matching is available.
 
